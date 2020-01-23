@@ -13,6 +13,7 @@ export class AppComponent {
   constructor(private _http: HttpClient) { this.loadXML(); }
 
   loadXML() {
+    var t0 = performance.now();
     this._http.get('./assets/AutoComplete.xml',
       {
         headers: new HttpHeaders()
@@ -28,12 +29,14 @@ export class AppComponent {
             this.xmlItems = data;
           });
       });
+      var t1 = performance.now();
+      console.log("Call to doSomething took " + (t1 - t0) + " milliseconds.");
   }
 
   parseXML(data) {
     return new Promise(resolve => {
-      var x: string | number,
-      var i: string | number,
+      var x: string | number
+      var i: string | number
       var k: string | number,
         arr = [],
         parser = new xml2js.Parser(
