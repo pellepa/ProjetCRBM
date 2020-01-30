@@ -7,29 +7,19 @@
 <!-- * * * * * * * to get started with your project! * * * * * * * * -->
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
 <!-- Toolbar -->
+  <mat-form-field>
+    <input type="text"
+           placeholder="Pick one"
+           matInput
+           [formControl]="myControl"
+           [matAutocomplete]="auto" />
 
-  <div class="container">
-    <table class="table table-bordered table-hover">
-      <tr>
-        <th>Id</th>
-        <th>descipteur</th>
-        <th>lb2ID</th>
-        <th>lb2LA</th>
-        <th>tiSynonyme</th>
-        <th>tiLA</th>
-        <th>an</th>
-      </tr>
-      <tr *ngFor="let item of xmlItems">
-        <td>{{item.id}}</td>
-        <td>{{item.des}}</td>
-        <td>{{item.lb2ID}}</td>
-        <td>{{item.lb2LA}}</td>
-        <td>{{item.tiSynonyme}}</td>
-        <td>{{item.tiLA}}</td>
-        <td>{{item.an}}</td>
-      </tr>
-    </table>
-  </div>
+    <mat-autocomplete #auto="matAutocomplete">
+      <mat-option *ngFor="let option of (filteredOptions | async)" [value]="option">
+        {{ option.autocomplete }}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
 <!-- * * * * * * * * * * * The content above * * * * * * * * * * * -->
 <!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * -->

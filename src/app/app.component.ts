@@ -1,26 +1,31 @@
-import { Component } from '@angular/core';
-import xml2js from 'xml2js';
+import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { FormControl } from '@angular/forms';
+import {Observable} from 'rxjs';
+import {map, startWith} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent  implements OnInit{
   title = 'awesome-project';
   public xmlItems: any;
-  constructor(private _http: HttpClient) { this.loadXML(); }
+  constructor(private _http: HttpClient) { }
+  myControl = new FormControl();
+  filteredOptions: Observable<string[]>;
+  url_debut = 'https://cors-anywhere.herokuapp.com/https://doccismef.chu-rouen.fr/CISMeFacservice/REST/autoComplete/'
+  fin_url = 'T_DESC_CISMEF_STRATEGIE,T_DESC_CISMEF_META_TERME,T_DESC_CISMEF_TYPE_RESSOURCE,T_DESC_MESH_DESCRIPTEUR,T_DESC_MESH_PUBLICATION_TYPE,T_DESC_MESH_SUPPLEMENTARY_CONCEPT'
 
-  loadXML() {
+
+  loadXML(concept, lang) {
     var t0 = performance.now();
-    this._http.get('./assets/AutoComplete.xml',
+    var url_final = this.url_debut + concept + '/' + lang +'/' + this.fin_url;
+    this._http.get(url_final,
       {
         headers: new HttpHeaders()
-          .set('Content-Type', 'text/xml')
-          .append('Access-Control-Allow-Methods', 'GET')
-          .append('Access-Control-Allow-Origin', '*')
-          .append('Access-Control-Allow-Headers', "Access-Control-Allow-Headers, Access-Control-Allow-Origin, Access-Control-Request-Method"),
+          .set('Content-Type', 'text/xml'),
         responseType: 'text'
       })
       .subscribe((data) => {
@@ -34,45 +39,39 @@ export class AppComponent {
   }
 
   parseXML(data) {
+    const json = JSON.parse(data);
     return new Promise(resolve => {
       var x: string | number
       var i: string | number
       var k: string | number,
-        arr = [],
-        parser = new xml2js.Parser(
-          {
-            trim: true,
-            explicitArray: true
-          });
-      parser.parseString(data, function (err, result) {
-        for (k in result) {
-          var obj = result[k];
-          console.log(obj);
+      arr = []
+        for (k in json) {
+          var obj = json[k];
           for (i in obj) {
             var item = Object.values(obj[i]);
-            console.log(item);
-             for (x in item) {
-              if(item.length > 1){
-                var valeur =Object.values(item[x]);
-                
-                console.log( Object.values(Object.values(Object.values(valeur[3]))[0]));
-                arr.push({
-                  id: Object.values(valeur[0]),
-                  des: Object.values(Object.values(valeur[2])[0])[0],
-                  lb2ID: Object.values(Object.values(Object.values(valeur[2]))[0])[1].id,
-                  lb2LA: Object.values(Object.values(Object.values(valeur[2]))[0])[1].la,
-                  tiSynonyme: Object.values(Object.values(valeur[3])[0])[0],
-                  tiLA: Object.values(Object.values(Object.values(valeur[3]))[0])[1].la,
-                  an: Object.values(valeur[4])
-                });
-              }
-
-            }
+            var valeur =Object.values(item[1])[0];
+            arr.push({
+              autocomplete : valeur
+            })
           }
         }
         resolve(arr);
-      });
     })
+  }
+
+  ngOnInit() {
+ this.filteredOptions = this.myControl.valueChanges
+      .pipe(
+        startWith(''),
+        map(value => this._filter(value))
+      );
+  }
+ 
+  private _filter(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    console.log(filterValue)
+    this.loadXML(filterValue, 'fr')
+    return this.xmlItems
   }
 
 }
